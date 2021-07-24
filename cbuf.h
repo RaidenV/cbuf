@@ -1,5 +1,5 @@
 /*!
- * \file cring.h
+ * \file cbuf.h
  *
  * \brief Basic circular buffer, with the twist that objects/structures
  * are copied in and out of the buffer into the preexisting memory, thus
@@ -24,8 +24,8 @@
  * \date 2021-07-24
  */
 
-#ifndef C_RING_H
-#define C_RING_H
+#ifndef CBUF_H
+#define CBUF_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -116,4 +116,4 @@ extern uint8_t cbuf_is_full( CBuf* buf );
 }
 #endif
 
-#endif // C_RING_H
+#endif // CBUF_H
