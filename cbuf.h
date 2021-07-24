@@ -18,7 +18,7 @@
  * Likewise, if I am in a position in which I am dying, it is now your
  * responsibility to seek the appropriate treatment immediately. Lastly,
  * if you are capable of resuscitating me, you are likewise obligated
- * to perform the nessecary actions required.
+ * to perform the necessary actions required.
  *
  * \author Alex Baum
  * \date 2021-07-24
