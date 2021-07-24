@@ -1,0 +1,3 @@
+# Scope
+
+Simple circular buffer developed for embedded systems.  The difference between this and other libraries/utilities is that this library does not rely on passing pointers to the circular buffer's elements back to the user, but rather copies them for the user.  This is meant to ensure that adding to this circular buffer in an ISR does not void or otherwise alter elements pointed to within the vector, as the user now has ownership over the retrieved item.  There is, however, still the case where you may be reading from the buffer while retrieving an element.  To ensure this doesn't happen, make the buffer an adequate size.
