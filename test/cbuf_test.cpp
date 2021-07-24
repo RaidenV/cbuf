@@ -78,6 +78,8 @@ TEST( CRing, Head )
     ASSERT_EQ( cbuf->head, 0 );
     ASSERT_TRUE( cbuf_is_full(cbuf));
     ASSERT_EQ( cbuf->tail, 1 );
+
+    cbuf_destroy( cbuf );
 }
 
 TEST( CRing, FullEmpty )
@@ -111,4 +113,6 @@ TEST( CRing, FullEmpty )
 
     ASSERT_TRUE( cbuf_is_empty(cbuf) );
     ASSERT_EQ  ( cbuf_size(cbuf), 0 );
+
+    cbuf_destroy( cbuf );
 }
