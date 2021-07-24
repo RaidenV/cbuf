@@ -35,7 +35,7 @@ extern "C"{
 #endif
 
 /*!
- * \struct CRing_t defines the circular buffer structure
+ * \struct CBuf defines the circular buffer structure
  */
 typedef struct
 {
