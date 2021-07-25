@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include "cbuf.h"
 
 CBuf* cbuf_make( size_t elem_sz, size_t len )
@@ -50,12 +51,24 @@ void cbuf_add( CBuf* buf, void* data )
     // if we're going to overwrite the oldest element,
     // simply increase the location of that oldest element
     // so that we can maintain a circular buffer where
-    // full  = ( head - tail ) == 1
+    // full  = ( head - tail ) == 1||len-1 (depending on location of head/tail)
     // empty = ( head - tail ) == 0
     if ( buf->head == buf->tail )
     {
         buf->tail++;
     }
+
+#if CBUF_DEBUG
+    fprintf(stderr, "Adding...Head=%zu Tail=%zu\r\n", buf->head, buf->tail );
+    for ( int i = 0; i < buf->elem_sz * buf->len; ++i )
+    {
+        fprintf( stderr, "%02X ", (unsigned char)buf->data[i] );
+        if ( !((i+1) % 12))
+            fprintf(stderr, "\r\n" );
+    }
+
+    fprintf( stderr, "\r\n\r\n");
+#endif
 }
 
 size_t cbuf_get( CBuf* buf, void* data )
@@ -63,9 +76,25 @@ size_t cbuf_get( CBuf* buf, void* data )
     if ( buf->head == buf->tail ) return 0;
 
     memcpy( data, (buf->data + buf->tail * buf->elem_sz), buf->elem_sz );
-    memset( buf->data + buf->tail, 0, buf->elem_sz );
+    memset( buf->data + (buf->tail * buf->elem_sz), 0, buf->elem_sz );
 
-    buf->tail = (buf->tail + 1) % buf->len;
+    // if the buffer is not empty
+    if ( buf->head != buf->tail )
+        // shift tail to the next value
+        buf->tail = (buf->tail + 1) % buf->len;
+
+#ifdef CBUF_DEBUG
+    fprintf( stderr, "Removing...Head=%zu Tail=%zu Empty=%d\r\n",
+             buf->head, buf->tail, cbuf_is_empty(buf) );
+    for ( int i = 0; i < buf->elem_sz * buf->len; ++i )
+    {
+        fprintf( stderr, "%02X ", (unsigned char)buf->data[i] );
+        if ( !((i+1) % 12))
+            fprintf(stderr, "\r\n" );
+    }
+
+    fprintf( stderr, "\r\n\r\n");
+#endif
 
     return 1;
 }

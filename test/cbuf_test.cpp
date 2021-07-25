@@ -10,6 +10,23 @@ typedef struct
     char   array[23];
 } TestElem;
 
+typedef struct
+{
+    uint32_t raz;
+    uint32_t dva;
+    uint32_t tre;
+} TestElem2;
+
+TestElem2* mkelem2(void)
+{
+    TestElem2* elem = (TestElem2*) malloc(sizeof(TestElem2));
+    elem->raz = 0xAAAAAAAA;
+    elem->dva = 0x55555555;
+    elem->tre = 0x99999999;
+
+    return elem;
+}
+
 TestElem* mkelem( void )
 {
     TestElem* elem = (TestElem*) malloc(sizeof(TestElem));
@@ -24,7 +41,7 @@ TestElem* mkelem( void )
     return elem;
 }
 
-TEST( CRing, AddElem )
+TEST( CBuf, AddElem )
 {
     CBuf* cbuf = cbuf_make( sizeof(TestElem), 3  );
 
@@ -40,7 +57,7 @@ TEST( CRing, AddElem )
     cbuf_destroy( cbuf );
 }
 
-TEST( CRing, GetElem )
+TEST( CBuf, GetElem )
 {
     CBuf* cbuf = cbuf_make( sizeof(TestElem), 3  );
     TestElem* elem = mkelem();
@@ -59,21 +76,62 @@ TEST( CRing, GetElem )
     cbuf_destroy( cbuf );
 }
 
-TEST( CRing, Head )
+TEST( CBuf, GetMultiElem )
+{
+    CBuf* cbuf = cbuf_make( sizeof(TestElem2), 4  );
+    TestElem2* elem = mkelem2();
+
+    cbuf_add( cbuf, elem );
+    cbuf_add( cbuf, elem );
+    cbuf_add( cbuf, elem );
+    cbuf_add( cbuf, elem );
+
+    // At this point we are expecting the buffer to have rolled over.
+    // This means that the head pointer has locked the stale data that
+    // the user failed to read before the buffer circled
+    ASSERT_TRUE( cbuf->head == 0 ); // head has returned to beginning of buffer
+    ASSERT_TRUE( cbuf->tail == 1 ); // tail has been pushed forward
+
+    TestElem elem_cmp = {};
+    // get the second element in the buffer
+    int size = cbuf_get( cbuf, &elem_cmp );
+
+    ASSERT_EQ( size, 1 );
+
+    // get the third element in the buffer
+    size = cbuf_get( cbuf, &elem_cmp );
+
+    ASSERT_EQ( size, 1 );
+
+    // get the fourth element in the buffer
+    size = cbuf_get( cbuf, &elem_cmp );
+
+    ASSERT_EQ( size , 1 );
+
+    // we've rolled back to the locked head (stale data, head pushed
+    // tail)
+    size = cbuf_get( cbuf, &elem_cmp );
+
+    // expect that we would not have read anything, even if valid data
+    // is located in this index
+    ASSERT_EQ( size, 0 );
+
+    cbuf_destroy( cbuf );
+}
+
+TEST( CBuf, Head )
 {
     CBuf* cbuf = cbuf_make( sizeof(TestElem), 3  );
-    TestElem* elem1 = mkelem();
-    TestElem* elem2 = mkelem();
-    TestElem* elem3 = mkelem();
-    cbuf_add( cbuf, elem1 );
+    TestElem* elem = mkelem();
+    cbuf_add( cbuf, elem );
 
     ASSERT_EQ( cbuf->head, 1 );
 
-    cbuf_add( cbuf, elem2 );
+    cbuf_add( cbuf, elem );
 
     ASSERT_EQ( cbuf->head, 2 );
 
-    cbuf_add( cbuf, elem3 );
+    cbuf_add( cbuf, elem );
 
     ASSERT_EQ( cbuf->head, 0 );
     ASSERT_TRUE( cbuf_is_full(cbuf));
@@ -82,15 +140,14 @@ TEST( CRing, Head )
     cbuf_destroy( cbuf );
 }
 
-TEST( CRing, FullEmpty )
+TEST( CBuf, FullEmpty )
 {
     CBuf* cbuf = cbuf_make( sizeof(TestElem), 3  );
-    TestElem* elem1 = mkelem();
-    TestElem* elem2 = mkelem();
-    cbuf_add( cbuf, elem1 );
+    TestElem* elem = mkelem();
+    cbuf_add( cbuf, elem );
 
     ASSERT_EQ( cbuf->head, 1 );
-    cbuf_add( cbuf, elem2 );
+    cbuf_add( cbuf, elem );
 
     ASSERT_EQ  ( cbuf->head, 2 );
     ASSERT_TRUE( cbuf_is_full(cbuf));
