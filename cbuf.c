@@ -55,7 +55,7 @@ void cbuf_add( CBuf* buf, void* data )
     // empty = ( head - tail ) == 0
     if ( buf->head == buf->tail )
     {
-        buf->tail++;
+        buf->tail = (++buf->tail) % buf->len;
     }
 
 #if CBUF_DEBUG
